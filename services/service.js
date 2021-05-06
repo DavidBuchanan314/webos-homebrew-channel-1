@@ -77,12 +77,19 @@ async function installPackage(filePath) {
       subscribe: true,
     });
     req.on('response', (res) => {
+      console.info(res.payload);
+
+      if (res.payload.returnValue === false) {
+        reject(new Error(`${res.payload.errorCode}: ${res.payload.errorText}`));
+        req.cancel();
+        return;
+      }
+
       if (res.payload.details && res.payload.details.errorCode !== undefined) {
         reject(new Error(`${res.payload.details.errorCode}: ${res.payload.details.reason}`));
         req.cancel();
+        return;
       }
-
-      console.info(res.payload);
 
       if (res.payload.statusValue === 30) {
         resolve(res.payload.details.packageId);
